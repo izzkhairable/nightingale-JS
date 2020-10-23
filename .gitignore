@@ -72,5 +72,14 @@ index copy.js
 index copy.html
 .vscode
 config.js
+<<<<<<< HEAD
 firstore.rules 
 firestore.indexes.json
+=======
+styles.css
+firestore.indexes.json
+firestore.rules
+firebase.json
+.firebaserc
+package-lock.json
+>>>>>>> master
