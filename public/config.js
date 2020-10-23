@@ -7,5 +7,5 @@ const firebaseConfig = {
   
   const spotifyConfig = {
     clientId: '5da7f93846a048c2834a174fe06e5bb9',
-    redirectUri: './spotify_callback.html',
+    redirectUri: 'http://localhost:5000/spotify_callback.html',
   };
