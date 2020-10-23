@@ -72,4 +72,9 @@ index copy.js
 index copy.html
 .vscode
 config.js
-
+styles.css
+firestore.indexes.json
+firestore.rules
+firebase.json
+.firebaserc
+package-lock.json
