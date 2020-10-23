@@ -72,4 +72,5 @@ index copy.js
 index copy.html
 .vscode
 config.js
-
+firstore.rules 
+firestore.indexes.json
