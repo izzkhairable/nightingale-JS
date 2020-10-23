@@ -65,11 +65,5 @@ node_modules/
 # dotenv environment variables file
 .env
 
-indextutorial.html
-app.js
-auth.js
-index copy.js
-index copy.html
-.vscode
-config.js
+
 
