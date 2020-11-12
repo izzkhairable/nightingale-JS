@@ -8,6 +8,32 @@ const { user } = require('firebase-functions/lib/providers/auth');
 const cors = require('cors')({origin: true});
 admin.initializeApp();
 
+// async function createCustomToken(user_id){
+//   return await admin.auth().createCustomToken(user_id)
+//    .then(customToken => { return { 'token': customToken } })
+//    .then(token=>{ return token})
+//    .on('error', err => {
+//      console.log("Error: ", err.message)
+//    }).catch(err=>err)
+//  }
+
+// exports.signUp = functions.https.onRequest(async (req, res) => {
+//   cors(req, res, async() => {
+//     var user_id=req.query.user_id
+//     var email=req.query.email
+//     var spotifyUrl=req.query.spotifyUrl
+//     var account=admin.firestore().collection('userAccounts').doc(user_id);
+//     account.set({
+//       emailAddress: `${email}`,
+//       spotifyUrl: `${spotifyUrl}`
+//     }).then(()=>{
+//       res.send(createCustomToken(user_id));
+//       console.log("It works, user registered!")
+//       return null
+//     }).catch(err=>err)
+//   })
+//   }
+// );
 
 exports.signUp = functions.https.onCall((data, context) => {
   var account=admin.firestore().collection('userAccounts').doc(data.user_id);
@@ -132,7 +158,6 @@ async function cleanTitles (playListTitles){
 }
 
 
-
 const callSpotifyData=async (song,artist, token, id)=>{
   return new Promise((resolve, reject) => {
     console.log('Spotify'+token)
@@ -169,62 +194,6 @@ const callSpotifyData=async (song,artist, token, id)=>{
         })
   },song)
 }
-
-exports.getPlaylist=functions.https.onRequest(async (req, res) => {
-  cors(req, res, async() => {
-    const playlistId=req.query.playlistId;
-    admin.firestore().collection("playlists").doc(playlistId).get().then(function(doc) {
-      if (doc.exists) {
-          console.log("Document data:", doc.data());
-          res.send(doc.data())
-          return doc.data()
-      } else {
-          // doc.data() will be undefined in this case
-          console.log("No such document!");
-          res.send("Error")
-          return "Error"
-      }
-    }).catch(function(error) {
-      res.send("Error getting document:", error);
-         return error
-    });
-  })
-})
-
-exports.incrementPlaylistExportCount=functions.https.onRequest(async (req, res) => {
-  cors(req, res, async() => {
-   const playlistId=req.query.playlistId;
-   admin.firestore().collection("playlists").doc(playlistId).get().then(function(doc) {
-    if (doc.exists) {
-        console.log("Document data:", doc.data());
-        // res.send(doc.data())
-        return doc.data()
-    } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-        // res.send("Error")
-        return "Error"
-    }
-}).then( 
-    data=>{
-      data.noOfExports=data.noOfExports+1
-      admin.firestore().collection('playlists').doc(playlistId).set(data).then(function() {
-        console.log("Document successfully written!");
-        res.send("Document Modified");
-        return "Document modified!Increment Number"
-      }).catch(function(error) {
-        res.send("Error getting document:", error);
-        return error
-      });
-      return null
-    }
-  ).catch(function(error) {
-    res.send("Error getting document:", error);
-       return error
-  });
-      return data
-  })
-})
 
 async function spotifyData(data,token){
   console.log('Spotify2'+token)
@@ -279,7 +248,6 @@ exports.addPlaylistMusicsToFirebase = functions.https.onRequest(async (req, res)
     youtubePlaylistId: `${youtubePlaylistId}`,
     playlistId: `${playlistName}-${userId}`,
     playlistName: `${playlistName}`,
-    noOfExports: 0,
     songs: spotifyDatas
   }
 
@@ -554,6 +522,8 @@ exports.GetMostPopularArtist = functions.https.onRequest(async (req, res) => {
 });
 })
 
+
+
 exports.GetMostPopularArtist2 = functions.https.onRequest(async (req, res) => {
   cors(req, res,() => {
     var userId= req.query.userId;
@@ -594,8 +564,8 @@ exports.GetMostPopularArtist2 = functions.https.onRequest(async (req, res) => {
       //Songkick Code
       //*Use the data from above which provides the highest occurring artist from all the user playlist*
       }).then(artist=>{
-      const http = require('https');
-      const songkickAPIKey= 'io09K9l3ebJxmxe2';
+      const http = require('http');
+      const songkickAPIKey= io09K9l3ebJxmxe2;
       http.get(`https://api.songkick.com/api/3.0/events.json?apikey=${songkickAPIKey}&artist_name=${encodeURI(artist)}`,
       resp => {
             let rawdata = ''
@@ -621,7 +591,7 @@ exports.GetMostPopularArtist2 = functions.https.onRequest(async (req, res) => {
           })
           return null
     }).catch(function(error) {
-      res.send("Error getting document:"+ error);
+      res.send("Error getting document:", error);
     });
 });
 })
