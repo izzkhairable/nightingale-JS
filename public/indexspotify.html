@@ -30,7 +30,7 @@
         }
   
         const url = getLoginURL([
-          'user-read-email'
+          'user-read-email playlist-modify-public playlist-modify-private'
         ]);
   
         return new Promise((resolve, reject) => {
@@ -38,6 +38,8 @@
             const hash = JSON.parse(event.data);
             if (hash.type == 'access_token') {
               resolve(hash.access_token);
+            }else {
+              reject()
             }
           }, false);
   
@@ -71,7 +73,7 @@
           .then(result => {
             // Sign in with the token from the function
             const token = result.data.token;
-            return app.auth().signInWithCustomToken(token)
+            return firebase.auth().signInWithCustomToken(token)
           }).then(user => {
             console.log("Logged in:", user);
           }).catch(error => {
@@ -79,6 +81,9 @@
           });
       }
   
+
+ 
+    
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         console.log("Authenticated:", user);
@@ -87,6 +92,7 @@
         document.getElementById('signin-button').style.display = "none";
         document.getElementById('loading').style.display = "none";
         alert("We check with Spotify and Firebase, you are successfully signed in!")
+        alert("your user id is "+user.uid)
       } else {
         alert("You have been logged out! Please Log In")
         showLoginUI();
@@ -109,6 +115,8 @@
       document.getElementById('loading').style.display = "none";
       document.getElementById('signin-button').style.display = "block";
     }
+
+
     </script>
   </body>
 

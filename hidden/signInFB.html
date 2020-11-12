@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        async function postData( data) {
+            var url="https://us-central1-nightingale-1d29b.cloudfunctions.net/signUp";
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                redirect: 'follow', // manual, *follow, error
+                referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify(data) // body data type must match "Content-Type" header
+            });
+            return response.json(); // parses JSON response into native JavaScript objects
+        }
+        
+       async function loginTheUserWithToken(data){
+           alert(data)
+            var url="https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyAhMDes-KpPanP6fUHSreiP9FDAp7V15D8";
+            return await fetch(url, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json'
+                },
+                redirect: 'follow', // manual, *follow, error
+                referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                body: JSON.stringify({'token':`${data}`, 'returnSecureToken':true}) // body data type must match "Content-Type" header
+            }).then(res =>res.json())
+        }
+
+        ////////////////////////////////////
+        ///////CALLING FUNCTIONS///////////
+        let token=""
+         postData( {"data": {
+                    "email":"thambi@gmail.com",
+                    "user_id": "brobrohaha",
+                    "spotifyUrl": "google.com" 
+                }}).then(data => {
+            console.log(data.result.token); // JSON data parsed by `data.json()` call
+            token=data.result.token
+            return null
+        }).then(data=>{
+            console.log("THIS IS DATA"+token)
+            const signInResult= loginTheUserWithToken(token)
+            console.log(signInResult)
+            return signInResult
+        })
+    </script>
+</body>
+</html>

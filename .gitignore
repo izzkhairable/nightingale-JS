@@ -65,6 +65,7 @@ node_modules/
 # dotenv environment variables file
 .env
 
+<<<<<<< HEAD
 indextutorial.html
 app.js
 auth.js
@@ -79,3 +80,7 @@ firebase.json
 .firebaserc
 package-lock.json
 .vscode
+=======
+
+
+>>>>>>> master
