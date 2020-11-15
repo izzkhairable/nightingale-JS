@@ -1,0 +1,123 @@
+<html>
+  <!-- Store all config stuff custom to your deployment in here -->
+  <head>
+    <script src="./config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.24.0/firebase-auth.js"></script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.1/firebaseui.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.1/firebaseui.css" />
+  </head>
+  <body>
+    <div class="container mx-auto">
+      <div class="card p-5"><h4>Every time a new person log into our Nightingale app with Spotify. The email, username and spotify url would be saved to our Firebase Firestore and Firebase Auth</h4></div>
+      <button class="btn btn-warning btn-lg text-center m-5 mx-auto"  id="signin-button" onclick="signIn();" style="display: none;">Login</button>
+      <div id="loading" class="text-center m-5 mx-auto" style="display: none;">Signing in...</div>
+      <button class="btn btn-primary btn-lg text-center m-5 mx-auto" id="signout-button" onclick="signOut();" style="display: none;">Sign Out</button>
+    </div>
+  
+    <script>
+      // Initialise Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+  
+      function login() {
+        function getLoginURL(scopes) {
+          return 'https://accounts.spotify.com/authorize?client_id=' + spotifyConfig.clientId +
+            '&redirect_uri=' + encodeURIComponent(spotifyConfig.redirectUri) +
+            '&scope=' + encodeURIComponent(scopes.join(' ')) +
+            '&response_type=token&show_dialog=true&scope=playlist-read-private';
+        }
+  
+        const url = getLoginURL([
+          'user-read-email playlist-modify-public playlist-modify-private'
+        ]);
+  
+        return new Promise((resolve, reject) => {
+          window.addEventListener('message', event => {
+            const hash = JSON.parse(event.data);
+            if (hash.type == 'access_token') {
+              resolve(hash.access_token);
+            }else {
+              reject()
+            }
+          }, false);
+  
+          // Show spotify auth popup
+          window.open(url, 'Spotify', 'height=700,width=600');
+        });
+      }
+  
+      function getUserData(accessToken) {
+        return fetch(
+          'https://api.spotify.com/v1/me',
+          { 'headers': {'Authorization': 'Bearer ' + accessToken } }
+        );
+      }
+  
+      function signIn() {
+        // Show loading text
+        document.getElementById('loading').style.display = "block";
+        // Hide buttons
+        document.getElementById('signout-button').style.display = "none";
+        document.getElementById('signin-button').style.display = "none";
+        login()
+          .then(accessToken => getUserData(accessToken))
+          .then(response => response.json())
+          .then(data => {
+            // Call the signup function with the spotify id
+            const signUp = firebase.functions().httpsCallable('signUp');
+            console.log(data)
+            return signUp({user_id: `${data.id}`, email:`${data.id}`, spotifyUrl: `${data.external_urls.spotify}`})
+          })
+          .then(result => {
+            // Sign in with the token from the function
+            const token = result.data.token;
+            return firebase.auth().signInWithCustomToken(token)
+          }).then(user => {
+            console.log("Logged in:", user);
+          }).catch(error => {
+            console.error(error);
+          });
+      }
+  
+
+ 
+    
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        console.log("Authenticated:", user);
+        // Show sign out button
+        document.getElementById('signout-button').style.display = "block";
+        document.getElementById('signin-button').style.display = "none";
+        document.getElementById('loading').style.display = "none";
+        alert("We check with Spotify and Firebase, you are successfully signed in!")
+        alert("your user id is "+user.uid)
+      } else {
+        alert("You have been logged out! Please Log In")
+        showLoginUI();
+      }
+    });
+  
+    firebase
+  
+    function signOut() {
+      firebase.auth().signOut().then(() => {
+        showLoginUI();
+      }).catch((error) => {
+        console.error("Something bad happened");
+      });
+    }
+  
+    function showLoginUI() {
+      // Show sign in button
+      document.getElementById('signout-button').style.display = "none";
+      document.getElementById('loading').style.display = "none";
+      document.getElementById('signin-button').style.display = "block";
+    }
+
+
+    </script>
+  </body>
+
+</html>

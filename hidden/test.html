@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+
+fetch("https://us-central1-nightingale-1d29b.cloudfunctions.net/addPlaylistMusicsToFirebase?youtubePlaylistId=PLr6ePnxUUANv4HlFRPJVHNQ-XA_h1MRGP&userId=izzkhair&spotifyToken=BQDuK8X54AdCmChfWPk7UQsKXVb6HPeTFAjcDpOGCuVU13ThVKH7A4AoEBTUghDa8W9CwzxRoXxga2eQ3bd47xXE5LnJ5UDTXk06rNDkHlaoGJmp0T26_LOTE3BGyhEdJFYc9QlC1eEcaIN3GPlqO111wifQEnmMNWgr9N7kwTfEJuI-u1eCNgOlNsznm7EIssVEV-XC_TQ5&playlistName=HonneHello")
+ .then(response => response.json())
+ .then(result => console.log(result))
+ .catch(error => console.log('error', error));
+    </script>
+</body>
+</html>
+
