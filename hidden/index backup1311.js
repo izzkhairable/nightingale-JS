@@ -147,29 +147,21 @@ const callSpotifyData=async (song,artist, token, id)=>{
               rawdata += chunk
           })
           resp.on('end', () => {
-                try {
-                  let data = JSON.parse(rawdata)
-                  var artists=[]
-                  data.tracks.items[0].artists.map((val)=>{
-                    artists.push(val.name)
-                  })
-                  let finalData={
-                    songName:data.tracks.items[0].name,
-                    artists: artists,
-                    spotifyId:data.tracks.items[0].id,
-                    youtubeId:id,
-                    imgUrl:data.tracks.items[0].album.images[0].url,
-                    spotifyUrl: 'https://open.spotify.com/track/'+data.tracks.items[0].id,
-                    youtubeUrl: 'https://www.youtube.com/watch?v='+id
-                  }
-                  resolve(finalData)
-                } catch (error) {
-                  console.log('!!!!THIS IS AN ERROR!!!!!')
-                  console.log("Error: ", error.message)
-                  resolve({});
-                }
-
-              
+              let data = JSON.parse(rawdata)
+              var artists=[]
+              data.tracks.items[0].artists.map((val)=>{
+                artists.push(val.name)
+              })
+              let finalData={
+                songName:data.tracks.items[0].name,
+                artists: artists,
+                spotifyId:data.tracks.items[0].id,
+                youtubeId:id,
+                imgUrl:data.tracks.items[0].album.images[0].url,
+                spotifyUrl: 'https://open.spotify.com/track/'+data.tracks.items[0].id,
+                youtubeUrl: 'https://www.youtube.com/watch?v='+id
+              }
+              resolve(finalData)
           }).on('error', err => {
             console.log("Error: ", err.message)
             reject(err)
@@ -199,7 +191,9 @@ exports.getPlaylist=functions.https.onRequest(async (req, res) => {
   })
 })
 
-function incrementPlaylistExportCount(playlistId){
+exports.incrementPlaylistExportCount=functions.https.onRequest(async (req, res) => {
+  cors(req, res, async() => {
+   const playlistId=req.query.playlistId;
    admin.firestore().collection("playlists").doc(playlistId).get().then(function(doc) {
     if (doc.exists) {
         console.log("Document data:", doc.data());
@@ -216,19 +210,21 @@ function incrementPlaylistExportCount(playlistId){
       data.noOfExports=data.noOfExports+1
       admin.firestore().collection('playlists').doc(playlistId).set(data).then(function() {
         console.log("Document successfully written!");
+        res.send("Document Modified");
         return "Document modified!Increment Number"
       }).catch(function(error) {
+        res.send("Error getting document:", error);
         return error
       });
       return null
     }
   ).catch(function(error) {
-
+    res.send("Error getting document:", error);
        return error
   });
-
-
-}
+      return data
+  })
+})
 
 async function spotifyData(data,token){
   console.log('Spotify2'+token)
@@ -267,9 +263,7 @@ exports.addPlaylistMusicsToFirebase = functions.https.onRequest(async (req, res)
   //*Find the data for each of the track from MusicBrainz*
   var spotifyDatas=await spotifyData(cleanedTitles,spotifyToken)
   // console.log('[spotifyData]'+spotifyDatas)
-   var newDatas = spotifyDatas.filter(function (myObj) { 
-        return Object.keys(myObj).length !==0; 
-    }); 
+  
   // var cleanedIds = spotifyDatas.map(e => e.songName);
   // var missing = cleanedTitles.map(e => {
   //     if (cleanedIds.indexOf(e.songName) == -1) {
@@ -286,7 +280,7 @@ exports.addPlaylistMusicsToFirebase = functions.https.onRequest(async (req, res)
     playlistId: `${playlistName}-${userId}`,
     playlistName: `${playlistName}`,
     noOfExports: 0,
-    songs: newDatas
+    songs: spotifyDatas
   }
 
 
@@ -322,7 +316,7 @@ exports.getAllPlaylist = functions.https.onRequest((req, res) => {
           // res.send(doc.data())
           results.push(doc.data())
       })
-      res.send(results.reverse())
+      res.send(results)
       return null
   }).catch(function(error) {
     res.send("Error getting document:", error);
@@ -475,15 +469,8 @@ exports.addPlaylistMusicsToSpotify = functions.https.onRequest(async (req, res) 
           return null
         }
       }).then((data)=>{
-          try{
-        return incrementPlaylistExportCount(playlistId)
-          }catch(error){
-          console.log(error)
-          return null
-        }
-      }).then((data)=>{
         console.log(data)
-        res.send({spotifyPlaylistId: newSpotifyPlaylistId})
+        res.send(`Spotify playlist Created and all the Songs have been added to the spotify playlist under the spotify account ${userId}`)
         return null
       }).catch(function(error) {
         res.send("Error getting document:", error);
@@ -565,20 +552,6 @@ exports.GetMostPopularArtist = functions.https.onRequest(async (req, res) => {
       res.send("Error getting document:", error);
     });
 });
-})
-
-exports.deletePlaylistFromFirebase = functions.https.onRequest(async (req, res) => {
-  cors(req, res,() => {
-    var playlistId=req.query.playlistId;
-    admin.firestore().collection('playlists').doc(playlistId).delete().then(function() {
-      console.log("Playlist successfully deleted!");
-      res.send("Playlist successfully deleted!")
-      return null
-  }).catch(function(error) {
-      console.error("Error removing document: ", error);
-      return null
-  });
-  })
 })
 
 
